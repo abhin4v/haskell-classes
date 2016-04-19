@@ -9,7 +9,7 @@ evalParser :: Parser a b -> a -> Maybe b
 evalParser p i = fst <$> runParser p i
 
 instance Functor (Parser i) where
-  fmap f (Parser p) = Parser $ \i -> fmap (\(o, i') -> (f o, i')) $ p i
+  fmap f (Parser p) = Parser $ fmap (\(o, i') -> (f o, i')) . p
 
 instance Applicative (Parser i) where
   pure x = Parser $ \i -> Just (x, i)
@@ -17,8 +17,8 @@ instance Applicative (Parser i) where
   Parser ff <*> Parser fv = Parser $ \i -> case ff i of
     Just (f, i') -> case fv i' of
       Just (v, i'') -> Just (f v, i'')
-      Nothing -> Nothing
-    Nothing -> Nothing
+      Nothing       -> Nothing
+    Nothing      -> Nothing
 
 instance Alternative (Parser i) where
   empty = Parser $ const Nothing
@@ -48,7 +48,7 @@ digitParser = Parser $ \i -> case i of
 
 digitsParser :: Parser String [Digit]
 digitsParser = Parser $ \i -> case runParser digitParser i of
-  Nothing -> Nothing
+  Nothing      -> Nothing
   Just (d, i') ->  case runParser digitsParser i' of
     Nothing        -> Just ([d], i')
     Just (ds, i'') -> Just (d:ds, i'')
@@ -74,6 +74,6 @@ personParser :: Parser String Person
 personParser =
   whitespacedParser (charParser '(') *> rawPersonParser <* whitespacedParser (charParser ')')
   where
-    nameParser = unwords <$> some (whitespacedParser wordParser)
-    ageParser  = whitespacedParser numberParser
+    nameParser      = unwords <$> some (whitespacedParser wordParser)
+    ageParser       = whitespacedParser numberParser
     rawPersonParser = pure Person <*> (nameParser <* charParser ',') <*> ageParser
