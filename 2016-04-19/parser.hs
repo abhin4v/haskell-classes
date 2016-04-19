@@ -39,7 +39,7 @@ newtype Digit = Digit { getIntOfDigit :: Int } deriving (Show, Eq, Ord)
 
 charToDigit :: Char -> Maybe Digit
 charToDigit c =
-  if Char.isDigit c then Just $ Digit (Char.digitToInt c) else Nothing
+  if Char.isDigit c then Just . Digit . Char.digitToInt $ c else Nothing
 
 digitParser :: Parser String Digit
 digitParser = Parser $ \i -> case i of
@@ -49,7 +49,7 @@ digitParser = Parser $ \i -> case i of
 digitsParser :: Parser String [Digit]
 digitsParser = Parser $ \i -> case runParser digitParser i of
   Nothing      -> Nothing
-  Just (d, i') ->  case runParser digitsParser i' of
+  Just (d, i') -> case runParser digitsParser i' of
     Nothing        -> Just ([d], i')
     Just (ds, i'') -> Just (d:ds, i'')
 
